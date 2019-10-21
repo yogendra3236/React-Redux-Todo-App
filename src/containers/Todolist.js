@@ -14,9 +14,18 @@ import axios from "axios";
 import { getJwt } from "../components/helpers/jwt";
 import { reactLocalStorage } from "reactjs-localstorage";
 import swal from "sweetalert";
-import { Card, Avatar, Tooltip } from "@material-ui/core";
+import { Card, Avatar, Tooltip, DialogActions } from "@material-ui/core";
 import _ from "underscore";
 import { Redirect } from "react-router-dom";
+import EditIcon from "@material-ui/icons/Edit";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Fab from "@material-ui/core/Fab";
+import { DropzoneArea } from "material-ui-dropzone";
+import Button from "@material-ui/core/Button";
+import FormData from "form-data";
 
 class Todolist extends React.Component {
     constructor(props) {
@@ -28,8 +37,49 @@ class Todolist extends React.Component {
             edit: false,
             updateId: null,
             editItem: "",
-            checked: false
+            checked: false,
+            notes: false,
+            noteId: null,
+            onChangeNote: "",
+            editNoteStatus: false,
+            attachmentStatus: false,
+            files: []
         };
+    }
+
+    componentDidUpdate() {
+        if (!getJwt()) {
+            // console.log("expired");
+            this.setState({
+                login: true
+            });
+            reactLocalStorage.remove("jwt", "");
+            return;
+        }
+        axios
+            .get("http://localhost:4000/get", {
+                params: {
+                    token: getJwt(),
+                    clickedCardIndex: this.props.clickedCard
+                }
+            })
+            .then(result => {
+                if (result.data === "token is not valid") {
+                    reactLocalStorage.remove("jwt");
+                    this.setState({
+                        login: true
+                    });
+                    return;
+                }
+
+                if (result.data === "Invalid Card") {
+                    swal("Wrong Project Id");
+                    this.setState({
+                        redirectToProject: true
+                    });
+                    return;
+                }
+            });
     }
 
     componentDidMount() {
@@ -154,6 +204,151 @@ class Todolist extends React.Component {
                 this.props.read(response.data);
             })
             .catch(err => console.log("error updating value", err));
+    };
+
+    notesOpen = noteId => {
+        this.setState({
+            notes: true,
+            noteId: noteId
+        });
+    };
+
+    notesClose = () => {
+        this.setState({
+            notes: false,
+            editNoteStatus: false
+        });
+    };
+
+    noteSubmit = e => {
+        e.preventDefault();
+
+        let { noteId, onChangeNote, clickedCardIndex } = this.state;
+        axios
+            .post("http://localhost:4000/notes", {
+                token: getJwt(),
+                noteId: noteId,
+                note: onChangeNote,
+                clickedCardIndex: clickedCardIndex
+            })
+            .then(response => {
+                console.log(response);
+                if (response.data === "token is not valid") {
+                    this.setState({
+                        login: true
+                    });
+                    return;
+                }
+                this.props.read(response.data);
+            })
+            .catch(err => console.log(err));
+
+        this.setState({
+            editNoteStatus: false
+        });
+    };
+
+    fileUpload(files) {
+        this.setState({
+            files: files
+        });
+    }
+
+    fileSubmit = () => {
+        let { noteId, files } = this.state;
+        let formdata = new FormData();
+        // console.log(files[0]);
+        // data.append('file', data)
+        for (var i = 0; i < files.length; i++) {
+            console.log(files[i]);
+            formdata.append("files", files[i], files[i].name);
+        }
+
+        formdata.append("token", getJwt());
+        formdata.append("todoId", noteId);
+
+        // console.log(...formdata);
+        axios
+            .post("http://localhost:4000/files", formdata)
+            .then(response => {
+                console.log(response.data);
+            })
+            .catch(err => console.log(err));
+
+        this.setState({
+            notes: false
+        });
+        swal("Perfect!", "Attachment Added!", "success");
+    };
+
+    trial = () => {
+        let { noteId } = this.state;
+        let { list } = this.props;
+        // console.log(list);
+        var dic = _.findWhere(list, { id: noteId });
+        if (dic !== undefined) {
+            if (this.state.editNoteStatus) {
+                return (
+                    <form onSubmit={this.noteSubmit}>
+                        <TextField
+                            id="outlined-text-input"
+                            label="Description"
+                            fullWidth
+                            onChange={e =>
+                                this.setState({
+                                    onChangeNote: e.target.value
+                                })
+                            }
+                            defaultValue={dic.note}
+                            type="text"
+                            name="text"
+                            autoComplete="text"
+                            margin="normal"
+                            variant="outlined"
+                        />
+                    </form>
+                );
+            }
+
+            return (
+                <div>
+                    <DialogContentText id="alert-dialog-description">
+                        {/* Let Google help apps determine location. This means sending
+                        anonymous location data to Google, even when no apps are
+                        running. */}
+                        {dic.note || "You don't have any description"}
+                    </DialogContentText>
+
+                    <DialogActions>
+                        <Fab
+                            color="secondary"
+                            aria-label="edit"
+                            // className={classes.fab}
+                            onClick={() => {
+                                this.setState({
+                                    editNoteStatus: true
+                                });
+                            }}
+                            style={{ position: "absolute", top: "30px" }}
+                        >
+                            <EditIcon />
+                        </Fab>
+                    </DialogActions>
+                    <DropzoneArea
+                        onChange={this.fileUpload.bind(this)}
+                        name="files"
+                    />
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        style={{ marginTop: "15px" }}
+                        onClick={this.fileSubmit}
+                    >
+                        Upload
+                    </Button>
+                </div>
+            );
+        }
     };
 
     render() {
@@ -286,9 +481,7 @@ class Todolist extends React.Component {
                                         key={value.id}
                                         dense
                                         button
-                                        onDoubleClick={() =>
-                                            this.editTodoInput(value.id)
-                                        }
+                                        onClick={() => this.notesOpen(value.id)}
                                         style={{
                                             backgroundColor: "skyBlue",
                                             marginBottom: "10px"
@@ -303,16 +496,36 @@ class Todolist extends React.Component {
                                         </ListItemIcon>
                                         <ListItemText primary={value.item} />
                                         <ListItemSecondaryAction>
-                                            <IconButton
-                                                edge="end"
-                                                aria-label="delete"
-                                                onClick={() =>
-                                                    this.delete(value.id)
-                                                }
-                                                id="delete"
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
+                                            <Tooltip title="Edit">
+                                                <IconButton
+                                                    edge="end"
+                                                    aria-label="delete"
+                                                    onClick={() =>
+                                                        this.editTodoInput(
+                                                            value.id
+                                                        )
+                                                    }
+                                                    style={{
+                                                        marginRight: "0px"
+                                                    }}
+                                                    id="edit"
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Delete">
+                                                <IconButton
+                                                    edge="end"
+                                                    aria-label="delete"
+                                                    onClick={() =>
+                                                        this.delete(value.id)
+                                                    }
+                                                    id="delete"
+                                                    color="primary"
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Tooltip>
                                         </ListItemSecondaryAction>
                                     </ListItem>
                                 </Card>
@@ -320,6 +533,22 @@ class Todolist extends React.Component {
                         }
                     })}
                 </List>
+
+                <Dialog
+                    fullWidth
+                    // maxWidth={"md"}
+                    open={this.state.notes}
+                    onClose={this.notesClose}
+                    aria-labelledby="alert-dialog-title"
+                    aria-describedby="alert-dialog-description"
+                >
+                    <DialogContent>
+                        <DialogTitle id="form-dialog-title">
+                            Your Description
+                        </DialogTitle>
+                        {this.trial()}
+                    </DialogContent>
+                </Dialog>
             </React.Fragment>
         );
     }
