@@ -14,7 +14,14 @@ import axios from "axios";
 import { getJwt } from "../components/helpers/jwt";
 import { reactLocalStorage } from "reactjs-localstorage";
 import swal from "sweetalert";
-import { Card, Avatar, Tooltip, DialogActions } from "@material-ui/core";
+import {
+    Card,
+    CardHeader,
+    Avatar,
+    Tooltip,
+    DialogActions,
+    CardContent
+} from "@material-ui/core";
 import _ from "underscore";
 import { Redirect } from "react-router-dom";
 import EditIcon from "@material-ui/icons/Edit";
@@ -26,6 +33,13 @@ import Fab from "@material-ui/core/Fab";
 import { DropzoneArea } from "material-ui-dropzone";
 import Button from "@material-ui/core/Button";
 import FormData from "form-data";
+import {
+    Button as SemanticButton,
+    Comment,
+    Header,
+    Form
+} from "semantic-ui-react";
+import "semantic-ui-css/semantic.min.css";
 
 class Todolist extends React.Component {
     constructor(props) {
@@ -43,7 +57,13 @@ class Todolist extends React.Component {
             onChangeNote: "",
             editNoteStatus: false,
             attachmentStatus: false,
-            files: []
+            files: [],
+            userFiles: [],
+            onChangeComment: "",
+            onChangeReply: "",
+            commentData: [],
+            parentCommentId: null,
+            replyData: []
         };
     }
 
@@ -100,14 +120,33 @@ class Todolist extends React.Component {
             clickedCardIndex: cardId
         });
 
-        axios
-            .get("http://localhost:4000/get", {
-                params: { token: getJwt(), clickedCardIndex: cardId }
-            })
-            .then(result => {
-                // console.log("result", result);
+        let getTodosData = axios.get("http://localhost:4000/get", {
+            params: { token: getJwt(), clickedCardIndex: cardId }
+        });
 
-                if (result.data === "token is not valid") {
+        let getUserFiles = axios.get("http://localhost:4000/allfiles", {
+            params: { token: getJwt() }
+        });
+
+        let commentData = axios.get("http://localhost:4000/allcomments", {
+            params: { token: getJwt() }
+        });
+
+        let replyData = axios.get("http://localhost:4000/allreplies", {
+            params: { token: getJwt() }
+        });
+
+        Promise.all([getTodosData, getUserFiles, commentData, replyData])
+            .then(result => {
+                // console.log("result", result[0]);
+                let result1 = result[0];
+                let userFiles = result[1].data.userFiles;
+                let commentData = result[2].data;
+                let replyData = result[3].data;
+                console.log(replyData);
+                // console.log(userFiles);
+
+                if (result1.data === "token is not valid") {
                     reactLocalStorage.remove("jwt");
                     this.setState({
                         login: true
@@ -115,15 +154,21 @@ class Todolist extends React.Component {
                     return;
                 }
 
-                if (result.data === "Invalid Card") {
+                if (result1.data === "Invalid Card") {
                     swal("Wrong Project Id");
                     this.setState({
                         redirectToProject: true
                     });
                     return;
                 }
-                let data = result.data.data;
+                let data = result1.data.data;
                 this.props.read(data);
+
+                this.setState({
+                    userFiles: userFiles,
+                    commentData: commentData,
+                    replyData: replyData
+                });
             })
             .catch(err => console.log(err));
     }
@@ -216,7 +261,8 @@ class Todolist extends React.Component {
     notesClose = () => {
         this.setState({
             notes: false,
-            editNoteStatus: false
+            editNoteStatus: false,
+            parentCommentId: null
         });
     };
 
@@ -271,7 +317,10 @@ class Todolist extends React.Component {
         axios
             .post("http://localhost:4000/files", formdata)
             .then(response => {
-                console.log(response.data);
+                console.log(response.data.userFiles);
+                this.setState({
+                    userFiles: response.data.userFiles
+                });
             })
             .catch(err => console.log(err));
 
@@ -282,10 +331,23 @@ class Todolist extends React.Component {
     };
 
     trial = () => {
-        let { noteId } = this.state;
+        let { noteId, userFiles, commentData, replyData } = this.state;
         let { list } = this.props;
+        // console.log(this.state.userFiles);
         // console.log(list);
+        // console.log(noteId);
         var dic = _.findWhere(list, { id: noteId });
+        let eachUserFiles = userFiles.filter(
+            each => each.todoId === String(noteId)
+        );
+
+        let eachTodoComment = commentData.filter(
+            each => each.todoId === String(noteId)
+        );
+
+        // console.log(userFiles);
+        // console.log(eachUserFiles);
+
         if (dic !== undefined) {
             if (this.state.editNoteStatus) {
                 return (
@@ -318,7 +380,6 @@ class Todolist extends React.Component {
                         running. */}
                         {dic.note || "You don't have any description"}
                     </DialogContentText>
-
                     <DialogActions>
                         <Fab
                             color="secondary"
@@ -329,7 +390,7 @@ class Todolist extends React.Component {
                                     editNoteStatus: true
                                 });
                             }}
-                            style={{ position: "absolute", top: "30px" }}
+                            style={{ position: "relative", top: "-50px" }}
                         >
                             <EditIcon />
                         </Fab>
@@ -338,6 +399,14 @@ class Todolist extends React.Component {
                         onChange={this.fileUpload.bind(this)}
                         name="files"
                     />
+                    <Card>
+                        <CardHeader title="All Media" />
+                        <CardContent>
+                            {eachUserFiles.map((each, index) => (
+                                <ol key={index}>{each.fileLink}</ol>
+                            ))}
+                        </CardContent>
+                    </Card>
                     <Button
                         variant="contained"
                         color="primary"
@@ -346,9 +415,239 @@ class Todolist extends React.Component {
                     >
                         Upload
                     </Button>
+                    <Card style={{ marginTop: "20px" }}>
+                        {/* <CardHeader title="All Comments" /> */}
+                        <CardContent>
+                            <Comment.Group threaded>
+                                <Header as="h3" dividing>
+                                    Comments
+                                </Header>
+                                {eachTodoComment.map(comment => {
+                                    let commentId = comment.commentId;
+                                    if (
+                                        comment.commentId ===
+                                        this.state.parentCommentId
+                                    ) {
+                                        return (
+                                            <Comment>
+                                                <Comment.Avatar
+                                                    as="a"
+                                                    src="https://react.semantic-ui.com/images/avatar/small/matt.jpg"
+                                                />
+                                                <Comment.Content>
+                                                    <Comment.Author as="a">
+                                                        {comment.firstName}
+                                                    </Comment.Author>
+                                                    <Comment.Metadata>
+                                                        <span>
+                                                            {comment.time}
+                                                        </span>
+                                                    </Comment.Metadata>
+                                                    <Comment.Text>
+                                                        {comment.comment}
+                                                    </Comment.Text>
+                                                    <Comment.Group>
+                                                        {replyData
+                                                            .filter(replyf => {
+                                                                return (
+                                                                    replyf.commentId ===
+                                                                    String(
+                                                                        commentId
+                                                                    )
+                                                                );
+                                                            })
+                                                            .map(reply => {
+                                                                return (
+                                                                    <Comment>
+                                                                        <Comment.Avatar
+                                                                            as="a"
+                                                                            src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
+                                                                        />
+                                                                        <Comment.Content>
+                                                                            <Comment.Author as="a">
+                                                                                {
+                                                                                    reply.firstName
+                                                                                }
+                                                                            </Comment.Author>
+                                                                            <Comment.Metadata>
+                                                                                <span>
+                                                                                    {
+                                                                                        reply.time
+                                                                                    }
+                                                                                </span>
+                                                                            </Comment.Metadata>
+                                                                            <Comment.Text>
+                                                                                {
+                                                                                    reply.reply
+                                                                                }
+                                                                            </Comment.Text>
+                                                                        </Comment.Content>
+                                                                    </Comment>
+                                                                );
+                                                            })}
+                                                    </Comment.Group>
+                                                    <Form
+                                                        reply
+                                                        onSubmit={this.addreply}
+                                                    >
+                                                        <Form.Input
+                                                            onChange={e =>
+                                                                this.setState({
+                                                                    onChangeReply:
+                                                                        e.target.value
+                                                                })
+                                                            }
+                                                            label="Add Reply"
+                                                            value={
+                                                                this.state
+                                                                    .onChangeReply
+                                                            }
+                                                        />
+                                                    </Form>
+                                                </Comment.Content>
+                                            </Comment>
+                                        );
+                                    }
+                                    return (
+                                        <Comment>
+                                            <Comment.Avatar
+                                                as="a"
+                                                src="https://react.semantic-ui.com/images/avatar/small/matt.jpg"
+                                            />
+                                            <Comment.Content>
+                                                <Comment.Author as="a">
+                                                    {comment.firstName}
+                                                </Comment.Author>
+                                                <Comment.Metadata>
+                                                    <span>{comment.time}</span>
+                                                </Comment.Metadata>
+                                                <Comment.Text>
+                                                    {comment.comment}
+                                                </Comment.Text>
+
+                                                <Comment.Group>
+                                                    {replyData
+                                                        .filter(replyf => {
+                                                            return (
+                                                                replyf.commentId ===
+                                                                String(
+                                                                    commentId
+                                                                )
+                                                            );
+                                                        })
+                                                        .map(reply => {
+                                                            return (
+                                                                <Comment>
+                                                                    <Comment.Avatar
+                                                                        as="a"
+                                                                        src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
+                                                                    />
+                                                                    <Comment.Content>
+                                                                        <Comment.Author as="a">
+                                                                            {
+                                                                                reply.firstName
+                                                                            }
+                                                                        </Comment.Author>
+                                                                        <Comment.Metadata>
+                                                                            <span>
+                                                                                {
+                                                                                    reply.time
+                                                                                }
+                                                                            </span>
+                                                                        </Comment.Metadata>
+                                                                        <Comment.Text>
+                                                                            {
+                                                                                reply.reply
+                                                                            }
+                                                                        </Comment.Text>
+                                                                    </Comment.Content>
+                                                                </Comment>
+                                                            );
+                                                        })}
+                                                </Comment.Group>
+
+                                                <Comment.Actions>
+                                                    <SemanticButton
+                                                        onClick={() =>
+                                                            this.setState({
+                                                                parentCommentId: commentId
+                                                            })
+                                                        }
+                                                    >
+                                                        Reply
+                                                    </SemanticButton>
+                                                </Comment.Actions>
+                                            </Comment.Content>
+                                        </Comment>
+                                    );
+                                })}
+                            </Comment.Group>
+
+                            <form onSubmit={this.commentSubmit}>
+                                <TextField
+                                    id="outlined-text-input"
+                                    label="Add Comment"
+                                    fullWidth
+                                    onChange={e =>
+                                        this.setState({
+                                            onChangeComment: e.target.value
+                                        })
+                                    }
+                                    value={this.state.onChangeComment}
+                                    type="text"
+                                    name="text"
+                                    autoComplete="text"
+                                    margin="normal"
+                                    variant="outlined"
+                                />
+                            </form>
+                        </CardContent>
+                    </Card>
                 </div>
             );
         }
+    };
+
+    addreply = e => {
+        e.preventDefault();
+        let { parentCommentId, noteId, onChangeReply } = this.state;
+        axios
+            .post("http://localhost:4000/addreply", {
+                token: getJwt(),
+                parentCommentId: parentCommentId,
+                todoId: noteId,
+                reply: onChangeReply,
+                time: new Date().toLocaleString()
+            })
+            .then(response => {
+                let replyData = response.data;
+                this.setState({
+                    replyData: replyData,
+                    onChangeReply: "",
+                    parentCommentId: null
+                });
+            })
+            .catch(err => console.log(err));
+    };
+
+    commentSubmit = e => {
+        e.preventDefault();
+        let { noteId, onChangeComment } = this.state;
+        axios
+            .post("http://localhost:4000/postcomment", {
+                token: getJwt(),
+                todoId: noteId,
+                comment: onChangeComment,
+                time: new Date().toLocaleString()
+            })
+            .then(response => {
+                let commentData = response.data;
+                this.setState({
+                    commentData: commentData,
+                    onChangeComment: ""
+                });
+            })
+            .catch(err => console.log(err));
     };
 
     render() {
@@ -566,7 +865,4 @@ const mapDispatchToProps = () => {
     };
 };
 
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps()
-)(Todolist);
+export default connect(mapStateToProps, mapDispatchToProps())(Todolist);
