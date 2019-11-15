@@ -40,6 +40,9 @@ import {
     Form
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
+import GetAppIcon from "@material-ui/icons/GetApp";
+import Link from '@material-ui/core/Link';
+
 
 class Todolist extends React.Component {
     constructor(props) {
@@ -403,7 +406,16 @@ class Todolist extends React.Component {
                         <CardHeader title="All Media" />
                         <CardContent>
                             {eachUserFiles.map((each, index) => (
-                                <ol key={index}>{each.fileLink}</ol>
+                                <div
+                                    key={index}
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between"
+                                    }}
+                                >
+                                    <ol>{each.fileName}</ol>
+                                    <Link href={each.fileLink} > <GetAppIcon /></Link>
+                                </div>
                             ))}
                         </CardContent>
                     </Card>
@@ -422,14 +434,14 @@ class Todolist extends React.Component {
                                 <Header as="h3" dividing>
                                     Comments
                                 </Header>
-                                {eachTodoComment.map(comment => {
+                                {eachTodoComment.map((comment, index) => {
                                     let commentId = comment.commentId;
                                     if (
                                         comment.commentId ===
                                         this.state.parentCommentId
                                     ) {
                                         return (
-                                            <Comment>
+                                            <Comment key={index}>
                                                 <Comment.Avatar
                                                     as="a"
                                                     src="https://react.semantic-ui.com/images/avatar/small/matt.jpg"
@@ -456,9 +468,9 @@ class Todolist extends React.Component {
                                                                     )
                                                                 );
                                                             })
-                                                            .map(reply => {
+                                                            .map((reply, index) => {
                                                                 return (
-                                                                    <Comment>
+                                                                    <Comment key={index}>
                                                                         <Comment.Avatar
                                                                             as="a"
                                                                             src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
@@ -494,7 +506,8 @@ class Todolist extends React.Component {
                                                             onChange={e =>
                                                                 this.setState({
                                                                     onChangeReply:
-                                                                        e.target.value
+                                                                        e.target
+                                                                            .value
                                                                 })
                                                             }
                                                             label="Add Reply"
@@ -509,7 +522,7 @@ class Todolist extends React.Component {
                                         );
                                     }
                                     return (
-                                        <Comment>
+                                        <Comment key={index}>
                                             <Comment.Avatar
                                                 as="a"
                                                 src="https://react.semantic-ui.com/images/avatar/small/matt.jpg"
@@ -535,9 +548,9 @@ class Todolist extends React.Component {
                                                                 )
                                                             );
                                                         })
-                                                        .map(reply => {
+                                                        .map((reply, index) => {
                                                             return (
-                                                                <Comment>
+                                                                <Comment key={index}>
                                                                     <Comment.Avatar
                                                                         as="a"
                                                                         src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
