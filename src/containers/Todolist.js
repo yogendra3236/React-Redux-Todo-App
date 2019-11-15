@@ -146,7 +146,7 @@ class Todolist extends React.Component {
                 let userFiles = result[1].data.userFiles;
                 let commentData = result[2].data;
                 let replyData = result[3].data;
-                console.log(replyData);
+                // console.log(replyData);
                 // console.log(userFiles);
 
                 if (result1.data === "token is not valid") {
@@ -281,7 +281,7 @@ class Todolist extends React.Component {
                 clickedCardIndex: clickedCardIndex
             })
             .then(response => {
-                console.log(response);
+                // console.log(response);
                 if (response.data === "token is not valid") {
                     this.setState({
                         login: true
