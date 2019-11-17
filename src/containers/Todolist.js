@@ -326,15 +326,17 @@ class Todolist extends React.Component {
                     }
                     this.setState({
                         userFiles: response.data.userFiles,
+                        notes: false,
                         files: []
                     });
+                    swal("Perfect!", "Attachment Added!", "success");
                 })
                 .catch(err => console.log(err));
     
-            this.setState({
-                notes: false
-            });
-            swal("Perfect!", "Attachment Added!", "success");
+            // this.setState({
+            //     notes: false
+            // });
+            
         }
         else {
             swal("Upload Error!", "Add atlease one file", "info");
