@@ -146,7 +146,7 @@ class Todolist extends React.Component {
                 let commentData = result[2].data;
                 let replyData = result[3].data;
                 // console.log(replyData);
-                console.log(userFiles);
+                // console.log(userFiles);
 
                 if (result1.data === "token is not valid") {
                     reactLocalStorage.remove("jwt");
@@ -308,7 +308,7 @@ class Todolist extends React.Component {
         // console.log(files[0]);
         // data.append('file', data)
         for (var i = 0; i < files.length; i++) {
-            console.log(files[i]);
+            // console.log(files[i]);
             formdata.append("files", files[i], files[i].name);
         }
 
@@ -319,7 +319,7 @@ class Todolist extends React.Component {
         axios
             .post("http://localhost:4000/files", formdata)
             .then(response => {
-                console.log(response.data.userFiles);
+                // console.log(response.data.userFiles);
                 this.setState({
                     userFiles: response.data.userFiles
                 });
@@ -348,7 +348,7 @@ class Todolist extends React.Component {
         );
 
         // console.log(userFiles);
-        console.log(eachUserFiles);
+        // console.log(eachUserFiles);
 
         if (dic !== undefined) {
             if (this.state.editNoteStatus) {
@@ -704,29 +704,35 @@ class Todolist extends React.Component {
 
     addreply = e => {
         e.preventDefault();
-        let { parentCommentId, noteId, onChangeReply } = this.state;
-        axios
-            .post("http://localhost:4000/addreply", {
-                token: getJwt(),
-                parentCommentId: parentCommentId,
-                todoId: noteId,
-                reply: onChangeReply,
-                time: new Date().toLocaleString()
-            })
-            .then(response => {
-                let replyData = response.data;
-                this.setState({
-                    replyData: replyData,
-                    onChangeReply: "",
-                    parentCommentId: null
-                });
-            })
-            .catch(err => console.log(err));
+        if (this.state.onChangeReply.length !== 0) {
+            let { parentCommentId, noteId, onChangeReply } = this.state;
+            axios
+                .post("http://localhost:4000/addreply", {
+                    token: getJwt(),
+                    parentCommentId: parentCommentId,
+                    todoId: noteId,
+                    reply: onChangeReply,
+                    time: new Date().toLocaleString()
+                })
+                .then(response => {
+                    let replyData = response.data;
+                    this.setState({
+                        replyData: replyData,
+                        onChangeReply: "",
+                        parentCommentId: null
+                    });
+                })
+                .catch(err => console.log(err));
+        }
+        else {
+            swal("Input Please", "Please add a Reply!", "info");
+        }
     };
 
     commentSubmit = e => {
         e.preventDefault();
-        let { noteId, onChangeComment } = this.state;
+        if (this.state.onChangeComment.length !== 0){
+            let { noteId, onChangeComment } = this.state;
         axios
             .post("http://localhost:4000/postcomment", {
                 token: getJwt(),
@@ -742,6 +748,10 @@ class Todolist extends React.Component {
                 });
             })
             .catch(err => console.log(err));
+        }
+        else {
+            swal("Input Please", "Please add a Comment!", "info");
+        }
     };
 
     render() {
