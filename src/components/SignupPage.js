@@ -150,11 +150,11 @@ export default class SignUp extends React.Component {
     return (
         <Container component="main" maxWidth="xs">
           <CssBaseline />
-          <div >
-            <Avatar >
+          <div style={{marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center'}} >
+            <Avatar style={{margin: '0px', backgroundColor: 'red'}} >
               <LockOutlinedIcon />
             </Avatar>
-            <Typography component="h1" variant="h5" style= {{'paddingBottom': '30px'}}>
+            <Typography component="h1" variant="h5" style= {{'paddingBottom': '20px'}}>
               Sign up
             </Typography>
             <form onSubmit={this.submitData} >
