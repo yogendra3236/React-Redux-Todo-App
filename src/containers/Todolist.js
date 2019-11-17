@@ -41,8 +41,7 @@ import {
 } from "semantic-ui-react";
 import "semantic-ui-css/semantic.min.css";
 import GetAppIcon from "@material-ui/icons/GetApp";
-import Link from '@material-ui/core/Link';
-
+import Link from "@material-ui/core/Link";
 
 class Todolist extends React.Component {
     constructor(props) {
@@ -147,7 +146,7 @@ class Todolist extends React.Component {
                 let commentData = result[2].data;
                 let replyData = result[3].data;
                 // console.log(replyData);
-                // console.log(userFiles);
+                console.log(userFiles);
 
                 if (result1.data === "token is not valid") {
                     reactLocalStorage.remove("jwt");
@@ -349,7 +348,7 @@ class Todolist extends React.Component {
         );
 
         // console.log(userFiles);
-        // console.log(eachUserFiles);
+        console.log(eachUserFiles);
 
         if (dic !== undefined) {
             if (this.state.editNoteStatus) {
@@ -405,18 +404,89 @@ class Todolist extends React.Component {
                     <Card>
                         <CardHeader title="All Media" />
                         <CardContent>
-                            {eachUserFiles.map((each, index) => (
-                                <div
-                                    key={index}
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between"
-                                    }}
-                                >
-                                    <ol>{each.fileName}</ol>
-                                    <Link href={each.fileLink} > <GetAppIcon /></Link>
-                                </div>
-                            ))}
+                            {eachUserFiles.map((each, index) => {
+                                if (
+                                    each.fileType === "img" ||
+                                    each.fileType === "png" ||
+                                    each.fileType === "jpg" ||
+                                    each.fileType === "jpeg"
+                                ) {
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                marginTop: "10px"
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent:
+                                                        "flex-start",
+                                                    marginTop: "30px"
+                                                }}
+                                            >
+                                                <img
+                                                    src={each.fileLink}
+                                                    alt="new"
+                                                    width="50px"
+                                                    height="50px"
+                                                />
+                                                <ol>{each.fileName}</ol>
+                                            </div>
+                                            <div
+                                                style={{
+                                                    marginTop: "50px",
+                                                    height: "40px"
+                                                }}
+                                            >
+                                                <Link href={each.fileLink}>
+                                                    {" "}
+                                                    <GetAppIcon />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    );
+                                } else if (each.fileType === "pdf") {
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                marginTop: "10px"
+                                            }}
+                                        >
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    display: "flex",
+                                                    justifyContent:
+                                                        "flex-start",
+                                                    marginTop: "30px"
+                                                }}
+                                            >
+                                                <img
+                                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSf0AhnipvLA2o-fdwUrK9QQ56__Eh0RWAv4LRceY9JC0pmhnMD"
+                                                    alt="new"
+                                                    width="50px"
+                                                    height="50px"
+                                                />
+                                                <ol>{each.fileName}</ol>
+                                            </div>
+                                            <div style={{ marginTop: "50px" }}>
+                                                <Link href={each.fileLink}>
+                                                    {" "}
+                                                    <GetAppIcon />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })}
                         </CardContent>
                     </Card>
                     <Button
@@ -468,35 +538,44 @@ class Todolist extends React.Component {
                                                                     )
                                                                 );
                                                             })
-                                                            .map((reply, index) => {
-                                                                return (
-                                                                    <Comment key={index}>
-                                                                        <Comment.Avatar
-                                                                            as="a"
-                                                                            src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
-                                                                        />
-                                                                        <Comment.Content>
-                                                                            <Comment.Author as="a">
-                                                                                {
-                                                                                    reply.firstName
-                                                                                }
-                                                                            </Comment.Author>
-                                                                            <Comment.Metadata>
-                                                                                <span>
+                                                            .map(
+                                                                (
+                                                                    reply,
+                                                                    index
+                                                                ) => {
+                                                                    return (
+                                                                        <Comment
+                                                                            key={
+                                                                                index
+                                                                            }
+                                                                        >
+                                                                            <Comment.Avatar
+                                                                                as="a"
+                                                                                src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"
+                                                                            />
+                                                                            <Comment.Content>
+                                                                                <Comment.Author as="a">
                                                                                     {
-                                                                                        reply.time
+                                                                                        reply.firstName
                                                                                     }
-                                                                                </span>
-                                                                            </Comment.Metadata>
-                                                                            <Comment.Text>
-                                                                                {
-                                                                                    reply.reply
-                                                                                }
-                                                                            </Comment.Text>
-                                                                        </Comment.Content>
-                                                                    </Comment>
-                                                                );
-                                                            })}
+                                                                                </Comment.Author>
+                                                                                <Comment.Metadata>
+                                                                                    <span>
+                                                                                        {
+                                                                                            reply.time
+                                                                                        }
+                                                                                    </span>
+                                                                                </Comment.Metadata>
+                                                                                <Comment.Text>
+                                                                                    {
+                                                                                        reply.reply
+                                                                                    }
+                                                                                </Comment.Text>
+                                                                            </Comment.Content>
+                                                                        </Comment>
+                                                                    );
+                                                                }
+                                                            )}
                                                     </Comment.Group>
                                                     <Form
                                                         reply
@@ -550,7 +629,9 @@ class Todolist extends React.Component {
                                                         })
                                                         .map((reply, index) => {
                                                             return (
-                                                                <Comment key={index}>
+                                                                <Comment
+                                                                    key={index}
+                                                                >
                                                                     <Comment.Avatar
                                                                         as="a"
                                                                         src="https://react.semantic-ui.com/images/avatar/small/jenny.jpg"

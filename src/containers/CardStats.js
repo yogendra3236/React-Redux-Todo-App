@@ -13,7 +13,7 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 import Drawer from "@material-ui/core/Drawer";
 import Avatar from "@material-ui/core/Avatar";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
 import { reactLocalStorage } from "reactjs-localstorage";
 import Tooltip from "@material-ui/core/Tooltip";
@@ -58,8 +58,8 @@ const useStyles = makeStyles(theme => ({
 export default function PrimarySearchAppBar(props) {
     const classes = useStyles();
     const [profile, setProfile] = React.useState(false);
-    const selector = useSelector(state => state.cards);
-    console.log(selector);
+    // const selector = useSelector(state => state.cards);
+    // console.log(selector);
 
     const [state, setState] = React.useState({
         left: false
