@@ -307,29 +307,38 @@ class Todolist extends React.Component {
         let formdata = new FormData();
         // console.log(files[0]);
         // data.append('file', data)
-        for (var i = 0; i < files.length; i++) {
-            // console.log(files[i]);
-            formdata.append("files", files[i], files[i].name);
+        if (files.length !== 0) {
+            for (var i = 0; i < files.length; i++) {
+                // console.log(files[i]);
+                formdata.append("files", files[i], files[i].name);
+            }
+    
+            formdata.append("token", getJwt());
+            formdata.append("todoId", noteId);
+    
+            // console.log(...formdata);
+            axios
+                .post("http://localhost:4000/files", formdata)
+                .then(response => {
+                    if (response.data.error === 'Error: Images And PDFs Only!'){
+                        swal("Upload Error!", "This media file is not supported!", "error");
+                        return;
+                    }
+                    this.setState({
+                        userFiles: response.data.userFiles,
+                        files: []
+                    });
+                })
+                .catch(err => console.log(err));
+    
+            this.setState({
+                notes: false
+            });
+            swal("Perfect!", "Attachment Added!", "success");
         }
-
-        formdata.append("token", getJwt());
-        formdata.append("todoId", noteId);
-
-        // console.log(...formdata);
-        axios
-            .post("http://localhost:4000/files", formdata)
-            .then(response => {
-                // console.log(response.data.userFiles);
-                this.setState({
-                    userFiles: response.data.userFiles
-                });
-            })
-            .catch(err => console.log(err));
-
-        this.setState({
-            notes: false
-        });
-        swal("Perfect!", "Attachment Added!", "success");
+        else {
+            swal("Upload Error!", "Add atlease one file", "info");
+        }
     };
 
     trial = () => {
@@ -589,6 +598,7 @@ class Todolist extends React.Component {
                                                                             .value
                                                                 })
                                                             }
+                                                            autoFocus
                                                             label="Add Reply"
                                                             value={
                                                                 this.state
