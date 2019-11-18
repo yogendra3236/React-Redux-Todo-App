@@ -455,7 +455,7 @@ class Todolist extends React.Component {
                                             >
                                                 <Link href={each.fileLink}>
                                                     {" "}
-                                                    <GetAppIcon />
+                                                    <GetAppIcon fontSize="large" />
                                                 </Link>
                                             </div>
                                         </div>
@@ -490,7 +490,7 @@ class Todolist extends React.Component {
                                             <div style={{ marginTop: "50px" }}>
                                                 <Link href={each.fileLink}>
                                                     {" "}
-                                                    <GetAppIcon />
+                                                    <GetAppIcon fontSize="large"/>
                                                 </Link>
                                             </div>
                                         </div>
