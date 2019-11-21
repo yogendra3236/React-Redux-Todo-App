@@ -1,6 +1,9 @@
 import React from "react";
 import { connect } from "react-redux";
 import { read } from "../actions/todo";
+import { comment } from "../actions/comment";
+import { reply } from "../actions/reply";
+import { files } from "../actions/files";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
@@ -63,9 +66,9 @@ class Todolist extends React.Component {
             userFiles: [],
             onChangeComment: "",
             onChangeReply: "",
-            commentData: [],
+            // commentData: [],
             parentCommentId: null,
-            replyData: []
+            // replyData: []
         };
     }
 
@@ -165,12 +168,9 @@ class Todolist extends React.Component {
                 }
                 let data = result1.data.data;
                 this.props.read(data);
-
-                this.setState({
-                    userFiles: userFiles,
-                    commentData: commentData,
-                    replyData: replyData
-                });
+                this.props.comment(commentData);
+                this.props.reply(replyData);
+                this.props.files(userFiles);
             })
             .catch(err => console.log(err));
     }
@@ -324,11 +324,13 @@ class Todolist extends React.Component {
                         swal("Upload Error!", "This media file is not supported!", "error");
                         return;
                     }
+                    let { userFiles } = response.data;
                     this.setState({
-                        userFiles: response.data.userFiles,
+                        // userFiles: response.data.userFiles,
                         notes: false,
                         files: []
                     });
+                    this.props.files(userFiles);
                     swal("Perfect!", "Attachment Added!", "success");
                 })
                 .catch(err => console.log(err));
@@ -344,22 +346,26 @@ class Todolist extends React.Component {
     };
 
     trial = () => {
-        let { noteId, userFiles, commentData, replyData } = this.state;
-        let { list } = this.props;
-        // console.log(this.state.userFiles);
-        // console.log(list);
-        // console.log(noteId);
+        let { noteId } = this.state; // from State
+        let { list, commentData, replyData, userFiles } = this.props; // from Redux-Store
+
         var dic = _.findWhere(list, { id: noteId });
-        let eachUserFiles = userFiles.filter(
-            each => each.todoId === String(noteId)
-        );
-
-        let eachTodoComment = commentData.filter(
-            each => each.todoId === String(noteId)
-        );
-
-        // console.log(userFiles);
+        
         // console.log(eachUserFiles);
+        
+        // console.log(commentData, noteId)
+        if (commentData !== null && userFiles !== null){
+            var eachUserFiles = userFiles.filter(
+                each => each.todoId === String(noteId)
+            );
+
+            var eachTodoComment = commentData.filter(each => {
+                return each.todoId === String(noteId);
+            })
+        }
+        
+        // console.log('sunshine', eachTodoComment);
+
 
         if (dic !== undefined) {
             if (this.state.editNoteStatus) {
@@ -729,10 +735,11 @@ class Todolist extends React.Component {
                 .then(response => {
                     let replyData = response.data;
                     this.setState({
-                        replyData: replyData,
+                        // replyData: replyData,
                         onChangeReply: "",
                         parentCommentId: null
                     });
+                    this.props.reply(replyData);
                 })
                 .catch(err => console.log(err));
         }
@@ -754,10 +761,12 @@ class Todolist extends React.Component {
             })
             .then(response => {
                 let commentData = response.data;
+                console.log(commentData);
                 this.setState({
-                    commentData: commentData,
+                    // commentData: commentData,
                     onChangeComment: ""
                 });
+                this.props.comment(commentData);
             })
             .catch(err => console.log(err));
         }
@@ -970,14 +979,21 @@ class Todolist extends React.Component {
 }
 
 const mapStateToProps = state => {
+    // console.log(state);
     return {
-        list: state.todos
+        list: state.todos,
+        commentData: state.comment,
+        replyData: state.reply,
+        userFiles: state.files
     };
 };
 
 const mapDispatchToProps = () => {
     return {
-        read
+        read,
+        comment,
+        reply,
+        files
     };
 };
 

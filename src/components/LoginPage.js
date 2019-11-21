@@ -67,14 +67,14 @@ export default class LoginPage extends Component {
             .post("http://localhost:4000/login", this.state)
             .then(config => {
                 // console.log( 'power', config.data);
-                if (config.data.length === 0) {
+                if (config.data === 'SequelizeUniqueConstraintError') {
                     swal(
                         "Login Error",
                         "Please enter a valid Email/Password or Sign up!",
                         "error"
                     );
                 } else {
-                    reactLocalStorage.set("jwt", config.data[0].token);
+                    reactLocalStorage.set("jwt", config.data.token);
                     this.setState({
                         isLoggedIn: true
                     });
@@ -96,15 +96,15 @@ export default class LoginPage extends Component {
             })
             .then(config => {
                 // console.log('config', config.data);
-                if (config.data.length === 0) {
+                if (config.data === 'SequelizeUniqueConstraintError') {
                     swal(
                         "Login Error",
                         "Please enter a valid Email/Password or Sign up!",
                         "error"
                     );
                 } else {
-                    // console.log(config.data[0])
-                    reactLocalStorage.set("jwt", config.data[0].token);
+                    // console.log(config.data)
+                    reactLocalStorage.set("jwt", config.data.token);
                     this.setState({
                         isLoggedIn: true
                     });
