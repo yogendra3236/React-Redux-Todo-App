@@ -16,6 +16,7 @@ import axios from "axios";
 import swal from "sweetalert";
 import { GoogleLogin } from "react-google-login";
 import { reactLocalStorage } from "reactjs-localstorage";
+import { getJwt } from './helpers/jwt';
 
 function Copyright() {
     return (
@@ -104,19 +105,41 @@ export default class SignUp extends React.Component {
     };
 
     responseGoogle = response => {
-        // console.log(response.profileObj);
+        // console.log(response);
+        // axios
+        //     .post("http://localhost:4000/googleSignUp", response.profileObj)
+        //     .then(myData => {
+        //         console.log(myData);
+        //         // console.log(data.data.length);
+        //         // console.log(myData.data.constructor === Array);
+        //         if (myData.data.token !== null || myData.data.token !== undefined) {
+        //             reactLocalStorage.set("jwt", myData.data.token);
+        //             this.setState({
+        //                 googleSignUp: true
+        //             });
+        //             // swal("Signup Success", "Cool. Please Sign In", "success");
+        //         }
+        //     })
+        //     .catch(err => console.log(err));
         axios
-            .post("http://localhost:4000/googleSignUp", response.profileObj)
-            .then(myData => {
-                console.log(myData);
-                // console.log(data.data.length);
-                // console.log(myData.data.constructor === Array);
-                if (myData.data.token !== null || myData.data.token !== undefined) {
-                    reactLocalStorage.set("jwt", myData.data.token);
+            .post("http://localhost:4000/googleSignUp", {
+                tokenObj: response.tokenObj,
+                imgUrl: response.profileObj.imageUrl
+            })
+            .then(config => {
+                // console.log('config', config.data);
+                if (config.data === 'SequelizeUniqueConstraintError') {
+                    swal(
+                        "Login Error",
+                        "Please enter a valid Email/Password or Sign up!",
+                        "error"
+                    );
+                } else {
+                    // console.log(config.data)
+                    reactLocalStorage.set("jwt", config.data.token);
                     this.setState({
                         googleSignUp: true
                     });
-                    // swal("Signup Success", "Cool. Please Sign In", "success");
                 }
             })
             .catch(err => console.log(err));
@@ -127,6 +150,9 @@ export default class SignUp extends React.Component {
             return <Redirect to="/login" />;
         }
         if (this.state.googleSignUp) {
+            return <Redirect to="/project" />;
+        }
+        if (getJwt()) {
             return <Redirect to="/project" />;
         }
         return (
