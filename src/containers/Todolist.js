@@ -63,7 +63,7 @@ class Todolist extends React.Component {
             editNoteStatus: false,
             attachmentStatus: false,
             files: [],
-            userFiles: [],
+            // userFiles: [],
             onChangeComment: "",
             onChangeReply: "",
             // commentData: [],
@@ -758,7 +758,7 @@ class Todolist extends React.Component {
             })
             .then(response => {
                 let commentData = response.data;
-                console.log(commentData);
+                // console.log(commentData);
                 this.setState({
                     // commentData: commentData,
                     onChangeComment: ""
