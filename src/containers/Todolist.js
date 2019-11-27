@@ -363,9 +363,6 @@ class Todolist extends React.Component {
                 return each.todoId === String(noteId);
             })
         }
-        
-        // console.log('sunshine', eachTodoComment);
-
 
         if (dic !== undefined) {
             if (this.state.editNoteStatus) {
