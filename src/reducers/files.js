@@ -1,8 +1,11 @@
-const files = (files = null, action) => {
+const files = (files = [], action) => {
+    // let copyFiles;
     switch (action.type) {
         case "files":
-            files = action.payload
-            return files;
+            // copyFiles = files.slice();
+            // copyFiles.push(action.payload)
+            // files = action.payload
+            return [...action.payload];
 
         default:
             return files;

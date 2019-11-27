@@ -1,8 +1,7 @@
-const cards = (cardslist = null, action) => {
+const cards = (cardslist = [], action) => {
     switch (action.type) {
         case "card":
-            cardslist = action.payload
-            return cardslist;
+            return [...action.payload];
 
         default:
             return cardslist;

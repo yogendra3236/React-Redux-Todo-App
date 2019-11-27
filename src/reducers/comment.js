@@ -1,8 +1,11 @@
-const comment = (comment = null, action) => {
+const comment = (comment = [], action) => {
+    // let copyComment;
     switch (action.type) {
         case "comment":
-            comment = action.payload
-            return comment;
+            // copyComment = comment.slice();
+            // copyComment.push(action.payload)
+            // comment = action.payload
+            return [...action.payload];
 
         default:
             return comment;

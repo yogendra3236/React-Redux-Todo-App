@@ -10,5 +10,5 @@ export default combineReducers({
     cards,
     comment,
     reply,
-    files
+    files,
 });

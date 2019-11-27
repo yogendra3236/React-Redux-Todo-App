@@ -1,8 +1,11 @@
-const reply = (reply = null, action) => {
+const reply = (reply = [], action) => {
+    // let copyreply;
     switch (action.type) {
         case "reply":
-            reply = action.payload
-            return reply;
+            // copyreply = reply.slice();
+            // copyreply.push(action.payload)
+            // reply = action.payload
+            return [...action.payload];
 
         default:
             return reply;
