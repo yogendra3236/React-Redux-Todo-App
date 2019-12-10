@@ -45,6 +45,7 @@ import {
 import "semantic-ui-css/semantic.min.css";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import Link from "@material-ui/core/Link";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 class Todolist extends React.Component {
     constructor(props) {
@@ -68,7 +69,9 @@ class Todolist extends React.Component {
             onChangeReply: "",
             // commentData: [],
             parentCommentId: null,
-            // replyData: []
+            // replyData: [],
+            loading: false,
+            success: true
         };
     }
 
@@ -303,25 +306,38 @@ class Todolist extends React.Component {
     }
 
     fileSubmit = () => {
-        let { noteId, files } = this.state;
+        let { noteId, files, loading } = this.state;
         let formdata = new FormData();
         // console.log(files[0]);
         // data.append('file', data)
         if (files.length !== 0) {
+            if (!loading) {
+                this.setState({
+                    loading: true,
+                    success: false
+                });
+            }
+            // console.log(files);
             for (var i = 0; i < files.length; i++) {
                 // console.log(files[i]);
                 formdata.append("files", files[i], files[i].name);
             }
-    
+
             formdata.append("token", getJwt());
             formdata.append("todoId", noteId);
-    
+
             // console.log(...formdata);
             axios
                 .post("http://localhost:4000/files", formdata)
                 .then(response => {
-                    if (response.data.error === 'Error: Images And PDFs Only!'){
-                        swal("Upload Error!", "This media file is not supported!", "error");
+                    if (
+                        response.data.error === "Error: Images And PDFs Only!"
+                    ) {
+                        swal(
+                            "Upload Error!",
+                            "This media file is not supported!",
+                            "error"
+                        );
                         return;
                     }
                     let { userFiles } = response.data;
@@ -331,16 +347,19 @@ class Todolist extends React.Component {
                         files: []
                     });
                     this.props.files(userFiles);
+                    this.setState({
+                        loading: false,
+                        success: true
+                    })
+
                     swal("Perfect!", "Attachment Added!", "success");
                 })
                 .catch(err => console.log(err));
-    
+
             // this.setState({
             //     notes: false
             // });
-            
-        }
-        else {
+        } else {
             swal("Upload Error!", "Add atlease one file", "info");
         }
     };
@@ -350,18 +369,19 @@ class Todolist extends React.Component {
         let { list, commentData, replyData, userFiles } = this.props; // from Redux-Store
 
         var dic = _.findWhere(list, { id: noteId });
-        
+
         // console.log(eachUserFiles);
-        
+
         // console.log(commentData, noteId)
-        if (commentData !== null && userFiles !== null){
+        if (commentData !== null && userFiles !== null) {
             var eachUserFiles = userFiles.filter(
                 each => each.todoId === String(noteId)
             );
+            // console.log('each', eachUserFiles);
 
             var eachTodoComment = commentData.filter(each => {
                 return each.todoId === String(noteId);
-            })
+            });
         }
 
         if (dic !== undefined) {
@@ -456,7 +476,10 @@ class Todolist extends React.Component {
                                                     height: "40px"
                                                 }}
                                             >
-                                                <Link href={each.fileLink}>
+                                                <Link
+                                                    href={each.fileLink}
+                                                    target="_blank"
+                                                >
                                                     {" "}
                                                     <GetAppIcon fontSize="large" />
                                                 </Link>
@@ -483,7 +506,7 @@ class Todolist extends React.Component {
                                                 }}
                                             >
                                                 <img
-                                                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSf0AhnipvLA2o-fdwUrK9QQ56__Eh0RWAv4LRceY9JC0pmhnMD"
+                                                    src={each.cloudinaryLink || 'https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSf0AhnipvLA2o-fdwUrK9QQ56__Eh0RWAv4LRceY9JC0pmhnMD'}
                                                     alt="new"
                                                     width="50px"
                                                     height="50px"
@@ -491,9 +514,12 @@ class Todolist extends React.Component {
                                                 <ol>{each.fileName}</ol>
                                             </div>
                                             <div style={{ marginTop: "50px" }}>
-                                                <Link href={each.fileLink}>
+                                                <Link
+                                                    href={each.fileLink}
+                                                    target="_blank"
+                                                >
                                                     {" "}
-                                                    <GetAppIcon fontSize="large"/>
+                                                    <GetAppIcon fontSize="large" />
                                                 </Link>
                                             </div>
                                         </div>
@@ -503,14 +529,30 @@ class Todolist extends React.Component {
                             })}
                         </CardContent>
                     </Card>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        style={{ marginTop: "15px" }}
-                        onClick={this.fileSubmit}
-                    >
-                        Upload
-                    </Button>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        <div style={{ position: "relative", margin: "20px" }}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                disabled={this.state.loading}
+                                onClick={this.fileSubmit}
+                            >
+                                Upload
+                            </Button>
+                            {this.state.loading && (
+                                <CircularProgress
+                                    size={24}
+                                    style={{
+                                        position: "absolute",
+                                        top: "21%",
+                                        left: "38%",
+                                        marginTop: "-12",
+                                        marginLeft: "-12"
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
                     <Card style={{ marginTop: "20px" }}>
                         {/* <CardHeader title="All Comments" /> */}
                         <CardContent>
@@ -739,35 +781,33 @@ class Todolist extends React.Component {
                     this.props.reply(replyData);
                 })
                 .catch(err => console.log(err));
-        }
-        else {
+        } else {
             swal("Input Please", "Please add a Reply!", "info");
         }
     };
 
     commentSubmit = e => {
         e.preventDefault();
-        if (this.state.onChangeComment.length !== 0){
+        if (this.state.onChangeComment.length !== 0) {
             let { noteId, onChangeComment } = this.state;
-        axios
-            .post("http://localhost:4000/postcomment", {
-                token: getJwt(),
-                todoId: noteId,
-                comment: onChangeComment,
-                time: new Date().toLocaleString()
-            })
-            .then(response => {
-                let commentData = response.data;
-                // console.log(commentData);
-                this.setState({
-                    // commentData: commentData,
-                    onChangeComment: ""
-                });
-                this.props.comment(commentData);
-            })
-            .catch(err => console.log(err));
-        }
-        else {
+            axios
+                .post("http://localhost:4000/postcomment", {
+                    token: getJwt(),
+                    todoId: noteId,
+                    comment: onChangeComment,
+                    time: new Date().toLocaleString()
+                })
+                .then(response => {
+                    let commentData = response.data;
+                    // console.log(commentData);
+                    this.setState({
+                        // commentData: commentData,
+                        onChangeComment: ""
+                    });
+                    this.props.comment(commentData);
+                })
+                .catch(err => console.log(err));
+        } else {
             swal("Input Please", "Please add a Comment!", "info");
         }
     };
