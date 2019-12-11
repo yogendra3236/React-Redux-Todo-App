@@ -46,6 +46,7 @@ import "semantic-ui-css/semantic.min.css";
 import GetAppIcon from "@material-ui/icons/GetApp";
 import Link from "@material-ui/core/Link";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import TimeAgo from 'react-timeago';
 
 class Todolist extends React.Component {
     constructor(props) {
@@ -578,7 +579,7 @@ class Todolist extends React.Component {
                                                     </Comment.Author>
                                                     <Comment.Metadata>
                                                         <span>
-                                                            {comment.time}
+                                                            <TimeAgo date={comment.time} />
                                                         </span>
                                                     </Comment.Metadata>
                                                     <Comment.Text>
@@ -617,9 +618,7 @@ class Todolist extends React.Component {
                                                                                 </Comment.Author>
                                                                                 <Comment.Metadata>
                                                                                     <span>
-                                                                                        {
-                                                                                            reply.time
-                                                                                        }
+                                                                                        <TimeAgo date={reply.time} />
                                                                                     </span>
                                                                                 </Comment.Metadata>
                                                                                 <Comment.Text>
@@ -668,7 +667,9 @@ class Todolist extends React.Component {
                                                     {comment.firstName}
                                                 </Comment.Author>
                                                 <Comment.Metadata>
-                                                    <span>{comment.time}</span>
+                                                    <span>
+                                                        <TimeAgo date={comment.time} />
+                                                    </span>
                                                 </Comment.Metadata>
                                                 <Comment.Text>
                                                     {comment.comment}
@@ -701,9 +702,7 @@ class Todolist extends React.Component {
                                                                         </Comment.Author>
                                                                         <Comment.Metadata>
                                                                             <span>
-                                                                                {
-                                                                                    reply.time
-                                                                                }
+                                                                                <TimeAgo date={reply.time} />
                                                                             </span>
                                                                         </Comment.Metadata>
                                                                         <Comment.Text>
@@ -769,7 +768,7 @@ class Todolist extends React.Component {
                     parentCommentId: parentCommentId,
                     todoId: noteId,
                     reply: onChangeReply,
-                    time: new Date().toLocaleString()
+                    time: new Date().toString()
                 })
                 .then(response => {
                     let replyData = response.data;
@@ -795,7 +794,7 @@ class Todolist extends React.Component {
                     token: getJwt(),
                     todoId: noteId,
                     comment: onChangeComment,
-                    time: new Date().toLocaleString()
+                    time: new Date().toString()
                 })
                 .then(response => {
                     let commentData = response.data;
